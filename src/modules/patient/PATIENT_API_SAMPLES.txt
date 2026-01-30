@@ -1,0 +1,370 @@
+
+Base URL: http://localhost:4000
+
+================================================================================
+
+1. CREATE PATIENT
+
+Endpoint: POST /
+Description: Create a new patient profile linked to a user account
+
+Request:
+--------
+POST /api/patient
+Content-Type: application/json
+
+{
+  "userId": "user456",
+  "data": {
+    "medicalRecordNumber": "MR123456789",
+    "insuranceId": "INS987654321",
+    "bloodGroup": "O+",
+    "allergies": ["Penicillin", "Shellfish", "Dust mites"],
+    "medicalHistory": ["Hypertension", "Type 2 Diabetes", "Previous knee surgery"],
+    "notes": "Patient prefers morning appointments. Has mobility issues with left knee."
+  }
+}
+
+Minimal Request:
+----------------
+POST /api/patient
+Content-Type: application/json
+
+{
+  "userId": "user456",
+  "data": {}
+}
+
+Request with Injury Details:
+----------------------------
+POST /api/patient
+Content-Type: application/json
+
+{
+  "userId": "user456",
+  "data": {
+    "bloodGroup": "A-",
+    "allergies": ["Latex"],
+    "injuryDetails": {
+      "affectedArea": "Lower back",
+      "startDate": "2024-10-15",
+      "receivedTreatment": true,
+      "painSeverity": 7,
+      "howDidInjurHappened": "Lifted heavy box incorrectly at work",
+      "affectDailyActivities": true,
+      "additionalNotes": "Pain worsens in the morning and after sitting for long periods",
+      "medicalReports": ["report123.pdf", "xray456.jpg"]
+    }
+  }
+}
+
+Field Requirements:
+-------------------
+Required Fields:
+- userId: Required string - ID of the associated user account
+
+Optional Fields in data object:
+- medicalRecordNumber: Optional string - Hospital/clinic medical record number
+- insuranceId: Optional string - Insurance policy number
+- bloodGroup: Optional string - Blood type (A+, A-, B+, B-, AB+, AB-, O+, O-)
+- allergies: Optional array of strings - List of known allergies
+- medicalHistory: Optional array of strings - Previous medical conditions/procedures
+- notes: Optional string - Additional notes about the patient
+- injuryDetails: Optional object with the following fields:
+  * affectedArea: Optional string - Body part/area affected
+  * startDate: Optional Date - When injury/condition started
+  * receivedTreatment: Optional boolean - Whether patient received prior treatment
+  * painSeverity: Optional number (0-10) - Pain level on 10-point scale
+  * howDidInjurHappened: Optional string - Description of how injury occurred
+  * affectDailyActivities: Optional boolean - Whether condition affects daily life
+  * additionalNotes: Optional string - Extra notes about the injury
+  * medicalReports: Optional array of strings - File paths/names of medical reports
+
+Response Examples:
+------------------
+Success:
+{
+  "ok": true,
+  "patient": {
+    "_id": "patient789",
+    "userId": "user456",
+    "nixpendId": "nixpend_patient_123",
+    "medicalRecordNumber": "MR123456789",
+    "insuranceId": "INS987654321",
+    "bloodGroup": "O+",
+    "allergies": ["Penicillin", "Shellfish", "Dust mites"],
+    "medicalHistory": ["Hypertension", "Type 2 Diabetes", "Previous knee surgery"],
+    "status": "active",
+    "notes": "Patient prefers morning appointments. Has mobility issues with left knee.",
+    "createdAt": "2024-12-23T10:30:00.000Z",
+    "updatedAt": "2024-12-23T10:30:00.000Z"
+  }
+}
+
+Patient Already Exists:
+{
+  "ok": false,
+  "error": "Patient already exists for this user"
+}
+
+User Not Found:
+{
+  "ok": false,
+  "error": "User not found"
+}
+
+Nixpend Registration Failed:
+{
+  "ok": false,
+  "error": "Failed to register patient in Nixpend"
+}
+
+================================================================================
+
+2. GET PATIENT BY ID
+
+Endpoint: GET /:patientId
+Description: Retrieve patient information by patient ID
+
+Request:
+--------
+GET /api/patient/patient789
+
+Alternative Request:
+--------------------
+GET /api/patient/user456
+Note: Can also use userId to get patient associated with that user
+
+Response Examples:
+------------------
+Success:
+{
+  "ok": true,
+  "patient": {
+    "_id": "patient789",
+    "userId": "user456",
+    "nixpendId": "nixpend_patient_123",
+    "medicalRecordNumber": "MR123456789",
+    "insuranceId": "INS987654321",
+    "bloodGroup": "O+",
+    "allergies": ["Penicillin", "Shellfish", "Dust mites"],
+    "medicalHistory": ["Hypertension", "Type 2 Diabetes", "Previous knee surgery"],
+    "injuryDetails": {
+      "affectedArea": "Lower back",
+      "startDate": "2024-10-15T00:00:00.000Z",
+      "receivedTreatment": true,
+      "painSeverity": 7,
+      "howDidInjurHappened": "Lifted heavy box incorrectly at work",
+      "affectDailyActivities": true,
+      "additionalNotes": "Pain worsens in the morning and after sitting for long periods",
+      "medicalReports": ["report123.pdf", "xray456.jpg"]
+    },
+    "status": "active",
+    "notes": "Patient prefers morning appointments. Has mobility issues with left knee.",
+    "createdAt": "2024-12-23T10:30:00.000Z",
+    "updatedAt": "2024-12-23T10:30:00.000Z"
+  }
+}
+
+Patient Not Found:
+{
+  "ok": false,
+  "error": "Patient not found"
+}
+
+================================================================================
+
+3. GET PATIENT DASHBOARD
+
+Endpoint: GET /:patientId/dashboard
+Description: Get patient dashboard with sessions and treatment plans
+
+Request:
+--------
+GET /api/patient/patient789/dashboard
+
+Response Example:
+-----------------
+Success:
+{
+  "ok": true,
+  "dashboard": {
+    "patient": {
+      "_id": "patient789",
+      "userId": "user456",
+      "nixpendId": "nixpend_patient_123"
+    },
+    "sessions": [
+      {
+        "_id": "session123",
+        "treatmentPlanId": "plan456",
+        "sessionNumber": 1,
+        "status": "completed",
+        "scheduledDate": "2024-12-20T09:00:00.000Z"
+      }
+    ],
+    "treatmentPlans": [
+      {
+        "_id": "plan456",
+        "title": "Lower Back Pain Treatment",
+        "status": "active",
+        "totalSessions": 12,
+        "completedSessions": 3
+      }
+    ]
+  }
+}
+
+================================================================================
+
+4. UPDATE PATIENT
+
+Endpoint: PUT /:patientId
+Description: Update patient information
+
+Request:
+--------
+PUT /api/patient/patient789
+Content-Type: application/json
+
+{
+  "medicalRecordNumber": "MR987654321",
+  "bloodGroup": "A+",
+  "allergies": ["Penicillin", "Peanuts"],
+  "medicalHistory": ["Hypertension", "Type 2 Diabetes", "Previous knee surgery", "Recent appendectomy"],
+  "notes": "Updated: Patient now prefers afternoon appointments due to work schedule change.",
+  "injuryDetails": {
+    "affectedArea": "Lower back and right shoulder",
+    "painSeverity": 5,
+    "additionalNotes": "Pain has improved with physical therapy"
+  }
+}
+
+Response Example:
+-----------------
+Success:
+{
+  "ok": true,
+  "patient": {
+    "_id": "patient789",
+    "userId": "user456",
+    "nixpendId": "nixpend_patient_123",
+    "medicalRecordNumber": "MR987654321",
+    "bloodGroup": "A+",
+    "allergies": ["Penicillin", "Peanuts"],
+    "medicalHistory": ["Hypertension", "Type 2 Diabetes", "Previous knee surgery", "Recent appendectomy"],
+    "notes": "Updated: Patient now prefers afternoon appointments due to work schedule change.",
+    "updatedAt": "2024-12-23T14:15:00.000Z"
+  }
+}
+
+================================================================================
+
+RATE LIMITING
+
+Patient Endpoints (except create):
+- Limit: 20 requests per 15 minutes per IP
+- Response: HTTP 429 when limit exceeded
+
+Create Patient Endpoint:
+- No specific rate limit applied (inherits general API limits)
+
+================================================================================
+
+COMMON ERROR RESPONSES
+
+400 Bad Request:
+{
+  "ok": false,
+  "error": "Validation error or business logic error"
+}
+
+404 Not Found:
+{
+  "ok": false,
+  "error": "Patient not found"
+}
+
+429 Too Many Requests:
+{
+  "error": "Too many requests, please try again later."
+}
+
+500 Internal Server Error:
+{
+  "ok": false,
+  "error": "Something Went Wrong"
+}
+
+================================================================================
+
+PATIENT MANAGEMENT FLOW EXAMPLES
+
+Complete Patient Setup Flow:
+----------------------------
+
+1. Create Patient Profile
+POST /api/patient
+{
+  "userId": "user456",
+  "data": {
+    "bloodGroup": "O+",
+    "allergies": ["Penicillin"],
+    "medicalHistory": ["Hypertension"]
+  }
+}
+
+2. Get Patient Details
+GET /api/patient/patient789
+
+3. Update Patient Information
+PUT /api/patient/patient789
+{
+  "notes": "Patient completed initial assessment",
+  "injuryDetails": {
+    "affectedArea": "Right knee",
+    "startDate": "2024-12-01",
+    "painSeverity": 6,
+    "receivedTreatment": false
+  }
+}
+
+4. View Patient Dashboard
+GET /api/patient/patient789/dashboard
+
+================================================================================
+
+INTEGRATION NOTES
+
+Nixpend Integration:
+- Patient creation automatically registers patient in Nixpend system
+- Uses user's name, nationality, phone, and gender from user profile
+- Nationality mapping: "Egyptian" -> "Egypt", "Saudi" -> "Saudi Arabia"
+- Phone number format: removes '+' prefix for Nixpend compatibility
+- Nixpend patient ID is stored as 'nixpendId' in local database
+
+User Relationship:
+- Each patient must be linked to a valid user account
+- Patient inherits basic information from user profile (name, contact info)
+- Guardian information is accessed through User.guardianInformation reference
+- One patient per user account (enforced at creation)
+
+================================================================================
+
+TESTING TIPS
+
+1. User Prerequisites: Ensure user exists and has completed full profile before creating patient
+
+2. Nixpend Dependency: Patient creation requires successful Nixpend registration
+
+3. Data Validation: All fields are optional except userId in creation request
+
+4. Blood Group Format: Use standard notation (A+, A-, B+, B-, AB+, AB-, O+, O-)
+
+5. Date Format: Use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ) for dates
+
+6. Pain Severity: Use integer values 0-10 for pain severity scale
+
+7. Status Field: Patient status defaults to 'active' when created
+
+8. Medical Reports: Store as file paths/names in medicalReports array

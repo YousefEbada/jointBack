@@ -1,0 +1,83 @@
+import { register, token } from './container.js';
+import { OTPRepoPort } from '../modules/auth/application/ports/OTPRepoPort.js';
+import { OTPRepoMongo } from '../modules/auth/infrastructure/repos/OTPRepoMongo.js';
+import { BookingRepoPort } from '../modules/booking/application/ports/BookingRepoPort.js';
+import { BookingRepoMongo } from '../modules/booking/infrastructure/repos/BookingRepoMongo.js';
+import { ReportRepoPort } from '../modules/reports/application/ports/ReportRepoPort.js';
+import { ReportRepoMongo } from '../modules/reports/infrastructure/repos/ReportRepoMongo.js';
+import { BlobPort } from 'infra/storage/blob.port.js';
+import { azureBlobAdapter } from '../infra/storage/blob.azure.adapter.js';
+import { UserRepoPort } from '../modules/auth/application/ports/UserRepoPort.js';
+import { UserRepoMongo } from '../modules/auth/infrastructure/repos/UserRepoMongo.js';
+import { MailPort } from 'infra/mail/mail.port.js';
+import { SMSPort } from 'infra/sms/sms.port.js';
+import { twilioMailAdapter } from 'infra/mail/twilio.mail.adapter.js';
+import { smsAdapter } from 'infra/sms/sms.adapter.js';
+import { PatientRepoPort } from '../modules/patient/application/ports/PatientRepoPort.js';
+import { PatientRepoMongo } from '../modules/patient/infrastructure/repos/PatientRepoMongo.js';
+import { DoctorRepoPort } from '../modules/doctor/application/ports/DoctorRepoPort.js';
+import { DoctorRepoMongo } from '../modules/doctor/infrastructure/repos/DoctorRepoMongo.js';
+import { nixpendAdapter } from '../modules/integration/adapters/nixpend.adapter.js';
+import { NixpendPort } from '../modules/integration/ports/NixpendPorts.js';
+import { SessionRepoPort } from '../modules/session/application/ports/SessionRepoPort.js';
+import { SessionRepoMongo } from '../modules/session/infrastructure/repos/SessionRepoMongo.js';
+import { TreatmentRepoPort } from '../modules/treatment-plan/application/ports/TreatmentRepoPort.js';
+import { TreatmentRepoMongo } from '../modules/treatment-plan/infrastructure/repos/TreamtentRepoMongo.js';
+import { NodemailerMailAdapter } from 'infra/mail/nodemailer.mail.adapter.js';
+import { ExerciseRepoPort } from 'modules/exercise/application/ports/ExerciseRepoPort.js';
+import { ExerciseRepoMongo } from 'modules/exercise/infrastructure/repos/ExerciseRepoMongo.js';
+// Chat module imports
+import { ChatRoomRepoPort } from '../modules/chat/application/ports/ChatRoomRepoPort.js';
+import { ChatMessageRepoPort } from '../modules/chat/application/ports/ChatMessageRepoPort.js';
+import { ChatRoomRepoMongo } from '../modules/chat/infrastructure/repos/ChatRoomRepoMongo.js';
+import { ChatMessageRepoMongo } from '../modules/chat/infrastructure/repos/ChatMessageRepoMongo.js';
+import { CreateChatRoom } from '../modules/chat/application/use-cases/CreateChatRoom.js';
+import { SendMessage } from '../modules/chat/application/use-cases/SendMessage.js';
+import { GetChatRooms } from '../modules/chat/application/use-cases/GetChatRooms.js';
+import { GetChatMessages } from '../modules/chat/application/use-cases/GetChatMessages.js';
+import { MarkMessagesAsRead } from '../modules/chat/application/use-cases/MarkMessagesAsRead.js';
+import { TaskRepoPort } from 'modules/admin/application/ports/TaskRepoPort.js';
+import { TaskRepoMongo } from 'modules/admin/infrastructure/repos/TaskRepoMongo.js';
+// Customer support imports
+import { SupportRepoPort } from '../modules/customer-support/application/ports/supportRepoPort.js';
+import { SupportRepoMongo } from '../modules/customer-support/infrastructure/repos/SupportRepoMongo.js';
+
+export const OTP_REPO = token<OTPRepoPort>('OTP_REPO');
+export const BOOKING_REPO = token<BookingRepoPort>('BOOKING_REPO');
+export const REPORT_REPO = token<ReportRepoPort>('REPORT_REPO');
+export const BLOB_PORT = token<BlobPort>('BLOB_PORT');
+export const USER_AUTH_REPO = token<UserRepoPort>('USER_AUTH_REPO');
+export const MAIL_REPO = token<MailPort>('MAIL_REPO');
+export const SMS_REPO = token<SMSPort>('SMS_REPO');
+export const PATIENT_REPO = token<PatientRepoPort>('PATIENT_REPO');
+export const DOCTOR_REPO = token<DoctorRepoPort>('DOCTOR_REPO');
+export const NIXPEND_ADAPTER = token<NixpendPort>('NIXPEND_ADAPTER');
+export const SESSION_REPO = token<SessionRepoPort>('SESSION_REPO');
+export const TREATMENT_PLAN_REPO = token<TreatmentRepoPort>('TREATMENT_PLAN_REPO');
+export const EXERCISE_REPO = token<ExerciseRepoPort>('EXERCISE_REPO');
+// Chat module tokens
+export const CHAT_ROOM_REPO = token<ChatRoomRepoPort>('CHAT_ROOM_REPO');
+export const CHAT_MESSAGE_REPO = token<ChatMessageRepoPort>('CHAT_MESSAGE_REPO');
+export const TASK_REPO = token<TaskRepoPort>('TASK_REPO');
+export const SUPPORT_REPO = token<SupportRepoPort>('SUPPORT_REPO');
+
+export function bindAll() {
+  register(OTP_REPO, OTPRepoMongo);
+  register(BOOKING_REPO, BookingRepoMongo);
+  register(REPORT_REPO, ReportRepoMongo);
+  register(BLOB_PORT, azureBlobAdapter);
+  register(USER_AUTH_REPO, UserRepoMongo);
+  // register(MAIL_REPO, twilioMailAdapter);
+  register(MAIL_REPO, NodemailerMailAdapter);
+  register(SMS_REPO, smsAdapter);
+  register(PATIENT_REPO, PatientRepoMongo);
+  register(DOCTOR_REPO, DoctorRepoMongo);
+  register(NIXPEND_ADAPTER, nixpendAdapter);
+  register(SESSION_REPO, SessionRepoMongo);
+  register(TREATMENT_PLAN_REPO, TreatmentRepoMongo);
+  register(EXERCISE_REPO, ExerciseRepoMongo);
+  register(CHAT_ROOM_REPO, ChatRoomRepoMongo);
+  register(CHAT_MESSAGE_REPO, ChatMessageRepoMongo);
+  register(TASK_REPO, TaskRepoMongo);
+  register(SUPPORT_REPO, SupportRepoMongo);
+}

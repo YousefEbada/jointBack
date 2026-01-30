@@ -1,0 +1,458 @@
+
+Base URL: http://localhost:4000
+
+================================================================================
+
+1. FIND USER BY CONTACT
+
+Endpoint: GET /find
+Description: Find a user by their email or phone number
+
+Request:
+--------
+GET /api/auth/find
+Content-Type: application/json
+
+{
+  "contact": "john.doe@example.com"
+}
+
+Alternative Request (Phone):
+----------------------------
+GET /api/auth/find
+Content-Type: application/json
+
+{
+  "contact": "+1234567890"
+}
+
+Response Examples:
+------------------
+Success:
+{
+  "ok": true,
+  "user": {
+    "_id": "user123",
+    "fullName": "John Doe",
+    "email": "john.doe@example.com",
+    "gender": "Male",
+    "userStatus": {
+      "partialProfileCompleted": true,
+      "registerOtpVerified": true,
+      "fullProfileCompleted": true
+    }
+  }
+}
+
+User Not Found:
+{
+  "ok": false,
+  "error": "User Not Found"
+}
+
+================================================================================
+
+2. CREATE PARTIAL USER
+
+Endpoint: POST /create-partial
+Description: Create a partial user profile (initial registration step)
+
+Request:
+--------
+POST /api/auth/create-partial
+Content-Type: application/json
+
+{
+  "fullName": "Jane Smith",
+  "gender": "Female",
+  "birthdate": "1990-05-15",
+  "contact": "jane.smith@example.com"
+}
+
+Alternative Request (Phone Contact):
+------------------------------------
+POST /api/auth/create-partial
+Content-Type: application/json
+
+{
+  "fullName": "Ahmed Ali",
+  "gender": "male",
+  "birthdate": "1985-12-20",
+  "contact": "+966501234567"
+}
+
+Field Requirements:
+-------------------
+- fullName: Required string (minimum 1 character)
+- gender: Required enum - "Male", "Female", "male", or "female"
+- birthdate: Required date string in YYYY-MM-DD format
+- contact: Required string (email or phone number)
+
+Response Examples:
+------------------
+Success:
+{
+  "ok": true,
+  "user": {
+    "_id": "user456",
+    "fullName": "Jane Smith",
+    "gender": "Female",
+    "email": "jane.smith@example.com",
+    "birthdate": "1990-05-15T00:00:00.000Z",
+    "userStatus": {
+      "partialProfileCompleted": true,
+      "registerOtpVerified": false,
+      "fullProfileCompleted": false
+    }
+  }
+}
+
+User Already Exists:
+{
+  "ok": false,
+  "error": "User Already Exists."
+}
+
+================================================================================
+
+3. CREATE FULL USER
+
+Endpoint: POST /create-full
+Description: Complete user profile creation (requires partial profile and verified OTP)
+
+Request:
+--------
+POST /api/auth/create-full
+Content-Type: application/json
+
+{
+  "userId": "user456",
+  "email": "jane.smith@gmail.com",
+  "phone": "+966501234567",
+  "identifier": "1234567890",
+  "identifierType": "National ID",
+  "nationality": "Saudi Arabia",
+  "address": "123 Main Street, Apt 4B",
+  "city": "Riyadh",
+  "maritalStatus": "Single",
+  "speakingLanguages": ["Arabic", "English"]
+}
+
+Minimal Request:
+----------------
+POST /api/auth/create-full
+Content-Type: application/json
+
+{
+  "userId": "user456",
+  "nationality": "USA",
+  "city": "New York"
+}
+
+Field Requirements:
+-------------------
+- userId: Optional string (minimum 1 character)
+- contact: Optional string (email or phone)
+- fullName: Optional string
+- gender: Optional enum - "Male", "Female", "male", or "female"
+- birthdate: Optional date (string in YYYY-MM-DD format or Date object)
+- email: Optional valid email string
+- phone: Optional phone string
+- identifier: Optional ID string (passport, national ID, etc.)
+- identifierType: Optional string
+- nationality: Optional string
+- address: Optional string
+- city: Optional string
+- maritalStatus: Optional string
+- speakingLanguages: Optional array of strings
+
+Response Examples:
+------------------
+Success:
+{
+  "ok": true,
+  "message": "User profile completed successfully",
+  "user": {
+    "_id": "user456",
+    "fullName": "Jane Smith",
+    "email": "jane.smith@gmail.com",
+    "phone": "+966501234567",
+    "nationality": "Saudi Arabia",
+    "city": "Riyadh",
+    "userStatus": {
+      "partialProfileCompleted": true,
+      "registerOtpVerified": true,
+      "fullProfileCompleted": true
+    }
+  }
+}
+
+Prerequisites Not Met:
+{
+  "ok": false,
+  "error": "User is not eligible to complete full profile. Ensure registration OTP is verified."
+}
+
+================================================================================
+
+4. REQUEST OTP
+
+Endpoint: GET /otp/request
+Description: Request an OTP for various purposes (register, login, report access)
+
+Request Examples:
+-----------------
+
+Registration OTP:
+GET /api/auth/otp/request
+Content-Type: application/json
+
+{
+  "subjectType": "register",
+  "subjectRef": "user456",
+  "contact": "jane.smith@example.com"
+}
+
+Login OTP:
+GET /api/auth/otp/request
+Content-Type: application/json
+
+{
+  "subjectType": "login",
+  "subjectRef": "john.doe@example.com",
+  "contact": "john.doe@example.com"
+}
+
+Report Access OTP:
+GET /api/auth/otp/request
+Content-Type: application/json
+
+{
+  "subjectType": "report",
+  "subjectRef": "report123",
+  "contact": "+966501234567"
+}
+
+Field Requirements:
+-------------------
+- subjectType: Required enum - "report", "login", or "register"
+- subjectRef: Required string (minimum 1 character) - user ID, email, or report ID
+- contact: Optional string - email or phone number for OTP delivery
+
+Response Examples:
+------------------
+Success:
+{
+  "ok": true,
+  "otpToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+Failed to Send:
+{
+  "ok": false,
+  "error": "Failed to send OTP via SMS"
+}
+
+================================================================================
+
+5. VERIFY OTP
+
+Endpoint: POST /otp/verify
+Description: Verify an OTP code and potentially authenticate the user
+
+Request:
+--------
+POST /api/auth/otp/verify
+Content-Type: application/json
+
+{
+  "otpToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "code": "123456"
+}
+
+Field Requirements:
+-------------------
+- otpToken: Required string (JWT token from request OTP response)
+- code: Required string (exactly 6 digits)
+
+Response Examples:
+------------------
+
+Success with Authentication (Login):
+{
+  "ok": true,
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "_id": "user123",
+    "fullName": "John Doe",
+    "email": "john.doe@example.com"
+  }
+}
+
+Success without Authentication (Registration/Report):
+{
+  "ok": true
+}
+
+Invalid Code:
+{
+  "ok": false,
+  "reason": "invalid"
+}
+
+Expired OTP:
+{
+  "ok": false,
+  "reason": "expired"
+}
+
+Too Many Attempts:
+{
+  "ok": false,
+  "reason": "locked"
+}
+
+OTP Not Found:
+{
+  "ok": false,
+  "reason": "not_found"
+}
+
+Invalid Token:
+{
+  "ok": false,
+  "reason": "invalid_token"
+}
+
+================================================================================
+
+6. FIND USER BY ID
+
+Note: This use-case doesn't have a direct HTTP endpoint but is used internally.
+
+Use Case Parameters:
+--------------------
+// Internal usage only
+const findUserById = new FindUserById(userRepo);
+const result = await findUserById.exec("user123");
+
+================================================================================
+
+RATE LIMITING
+
+Request OTP Endpoint:
+- Limit: 5 requests per 15 minutes per IP
+- Response: HTTP 429 when limit exceeded
+
+Verify OTP Endpoint:
+- Limit: 10 requests per 15 minutes per IP
+- Response: HTTP 429 when limit exceeded
+
+================================================================================
+
+COMMON ERROR RESPONSES
+
+400 Bad Request:
+{
+  "ok": false,
+  "message": "Validation error or business logic error"
+}
+
+401 Unauthorized:
+{
+  "ok": false,
+  "reason": "invalid"
+}
+
+429 Too Many Requests:
+{
+  "error": "Too many requests, please try again later."
+}
+
+500 Internal Server Error:
+{
+  "ok": false,
+  "message": "Internal Server Error."
+}
+
+================================================================================
+
+AUTHENTICATION FLOW EXAMPLES
+
+Complete Registration Flow:
+---------------------------
+
+1. Create Partial User
+POST /api/auth/create-partial
+{
+  "fullName": "New User",
+  "gender": "Male",
+  "birthdate": "1995-01-01",
+  "contact": "newuser@example.com"
+}
+
+2. Request Registration OTP
+GET /api/auth/otp/request
+{
+  "subjectType": "register",
+  "subjectRef": "user789",
+  "contact": "newuser@example.com"
+}
+
+3. Verify Registration OTP
+POST /api/auth/otp/verify
+{
+  "otpToken": "jwt_token_from_step2",
+  "code": "123456"
+}
+
+4. Complete Full Profile
+POST /api/auth/create-full
+{
+  "userId": "user789",
+  "nationality": "Canada",
+  "city": "Toronto",
+  "phone": "+14165551234"
+}
+
+Login Flow:
+-----------
+
+1. Find User
+GET /api/auth/find
+{
+  "contact": "existinguser@example.com"
+}
+
+2. Request Login OTP
+GET /api/auth/otp/request
+{
+  "subjectType": "login",
+  "subjectRef": "existinguser@example.com",
+  "contact": "existinguser@example.com"
+}
+
+3. Verify Login OTP (Returns access tokens)
+POST /api/auth/otp/verify
+{
+  "otpToken": "jwt_token_from_step2",
+  "code": "654321"
+}
+
+================================================================================
+
+TESTING TIPS
+
+1. Contact Type Detection: The system automatically detects whether the contact 
+   is an email or phone number
+
+2. Date Format: Always use YYYY-MM-DD format for birthdate strings
+
+3. Gender Values: Case-insensitive ("Male", "male", "Female", "female")
+
+4. OTP Expiry: OTPs typically expire in 15 minutes (check security config)
+
+5. Token Storage: Store the otpToken securely between request and verify calls
+
+6. Rate Limiting: Be aware of rate limits when testing multiple requests
