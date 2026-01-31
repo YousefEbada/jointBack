@@ -1,0 +1,25 @@
+import { detectContactType } from "../../../../shared/utils/detectContactType.js";
+export class CreatePartialUser {
+    userRepo;
+    constructor(userRepo) {
+        this.userRepo = userRepo;
+    }
+    async exec(fullName, gender, birthdate, contact) {
+        try {
+            const contactType = detectContactType(contact);
+            console.log('[Create Partial User] Detected contact type:', contactType);
+            console.log('[Create Partial User] Creating partial user with contact:', contact);
+            const existingUser = await this.userRepo.findByEmailOrPhone(contactType, contact);
+            if (existingUser) {
+                console.log('[Create Partial User] User already exists with contact:', existingUser);
+                return { ok: false, error: 'User Already Exists.' };
+            }
+            const user = await this.userRepo.create({ fullName, gender, birthdate, [contactType]: contact, userStatus: { partialProfileCompleted: true, registerOtpVerified: false, fullProfileCompleted: false } });
+            return { ok: true, user };
+        }
+        catch (error) {
+            console.log('[Create Partial User] Error in creating partial user:', error.message);
+            return { ok: false, error: error.message };
+        }
+    }
+}
